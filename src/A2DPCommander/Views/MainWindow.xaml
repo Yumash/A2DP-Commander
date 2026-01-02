@@ -1,0 +1,581 @@
+<Window x:Class="BTAudioDriver.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:BTAudioDriver.ViewModels"
+        xmlns:models="clr-namespace:BTAudioDriver.Models"
+        xmlns:converters="clr-namespace:BTAudioDriver.Converters"
+        xmlns:loc="clr-namespace:BTAudioDriver.Localization"
+        mc:Ignorable="d"
+        Title="A2DP Commander"
+        Width="580" Height="520"
+        MinWidth="500" MinHeight="450"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+
+    <Window.Resources>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <converters:ProfileModeToStringConverter x:Key="ProfileModeToStringConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <Style x:Key="ModeButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="90"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="StatusTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Padding" Value="10"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,3"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Шапка со статусом устройства -->
+        <Border Grid.Row="0" Background="#F5F5F5" Padding="15,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="10" Height="10" Margin="0,0,8,0">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="#4CAF50"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDeviceConnected}" Value="False">
+                                            <Setter Property="Fill" Value="#F44336"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="{Binding DeviceStatus}" Style="{StaticResource StatusTextStyle}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource StatusTextStyle}" Margin="18,0,0,0">
+                        <Run Text="{Binding MainWindow_CurrentMode, Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                        <Run Text="{Binding CurrentModeName, Mode=OneWay}" FontWeight="SemiBold"/>
+                        <Run Text=" - " Foreground="Gray"/>
+                        <Run Text="{Binding CodecInfo, Mode=OneWay}" Foreground="Gray"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="{Binding MainWindow_MinimizeToTray, Source={x:Static loc:LocalizationManager.Instance}}"
+                        Command="{Binding MinimizeToTrayCommand}"
+                        Padding="12,6" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Основной контент с вкладками -->
+        <TabControl Grid.Row="1" Margin="10">
+
+            <!-- Вкладка "Управление" -->
+            <TabItem Header="{Binding Tab_Control, Source={x:Static loc:LocalizationManager.Instance}}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Кнопки переключения режима -->
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Command="{Binding SetMusicModeCommand}" Style="{StaticResource ModeButtonStyle}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="border" CornerRadius="8" BorderThickness="2" Background="#E3F2FD" BorderBrush="#2196F3">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="🎵" FontSize="32" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Mode_Music, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Mode_MusicDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsMusicMode}" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#2196F3"/>
+                                            <Setter TargetName="border" Property="BorderBrush" Value="#1976D2"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#BBDEFB"/>
+                                        </Trigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                <Condition Binding="{Binding IsMusicMode}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="border" Property="Background" Value="#1E88E5"/>
+                                        </MultiDataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Grid.Column="1" Command="{Binding SetCallsModeCommand}" Style="{StaticResource ModeButtonStyle}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="border" CornerRadius="8" BorderThickness="2" Background="#E8F5E9" BorderBrush="#4CAF50">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="🎤" FontSize="32" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Mode_Calls, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Mode_CallsDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsCallsMode}" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#4CAF50"/>
+                                            <Setter TargetName="border" Property="BorderBrush" Value="#388E3C"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#C8E6C9"/>
+                                        </Trigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                <Condition Binding="{Binding IsCallsMode}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="border" Property="Background" Value="#43A047"/>
+                                        </MultiDataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка "Настройки" (объединённые с качеством звука) -->
+            <TabItem Header="{Binding Tab_Settings, Source={x:Static loc:LocalizationManager.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <StackPanel>
+                        <!-- Устройство -->
+                        <GroupBox Header="{Binding Settings_BluetoothDevice, Source={x:Static loc:LocalizationManager.Instance}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          ItemsSource="{Binding AvailableDevices}"
+                                          SelectedItem="{Binding SelectedDevice}"
+                                          DisplayMemberPath="Name"
+                                          Margin="0,0,10,0"/>
+                                <Button Grid.Column="1"
+                                        Content="{Binding Settings_Refresh, Source={x:Static loc:LocalizationManager.Instance}}"
+                                        Command="{Binding RefreshDevicesCommand}"
+                                        Padding="15,5"/>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- Режим по умолчанию -->
+                        <GroupBox Header="{Binding Settings_DefaultMode, Source={x:Static loc:LocalizationManager.Instance}}">
+                            <StackPanel>
+                                <RadioButton Content="{Binding Settings_MusicHighQuality, Source={x:Static loc:LocalizationManager.Instance}}"
+                                             IsChecked="{Binding DefaultMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Music}"/>
+                                <RadioButton Content="{Binding Settings_CallsWithMic, Source={x:Static loc:LocalizationManager.Instance}}"
+                                             IsChecked="{Binding DefaultMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Calls}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Поведение -->
+                        <GroupBox Header="{Binding Settings_Behavior, Source={x:Static loc:LocalizationManager.Instance}}">
+                            <StackPanel>
+                                <CheckBox Content="{Binding Settings_AutoStart, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding AutoStart}"/>
+                                <CheckBox Content="{Binding Settings_ShowNotifications, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding ShowNotifications}"/>
+                                <CheckBox Content="{Binding Settings_AutoSwitchOnConnect, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding AutoSwitchOnConnect}"/>
+                                <CheckBox Content="{Binding Settings_AutoSwitchByApp, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding AutoSwitchByApp}"
+                                          ToolTip="{Binding Settings_AutoSwitchByAppHint, Source={x:Static loc:LocalizationManager.Instance}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Качество звука -->
+                        <GroupBox Header="{Binding Settings_AudioQuality, Source={x:Static loc:LocalizationManager.Instance}}">
+                            <StackPanel>
+                                <CheckBox Content="{Binding Audio_DisableEnhancements, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding DisableEnhancements}"/>
+                                <TextBlock Text="{Binding Audio_DisableEnhancementsHint, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           Foreground="Gray" Margin="20,0,0,8" FontSize="11"/>
+
+                                <CheckBox Content="{Binding Audio_SetAsDefault, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding SetAsDefaultDevice}"/>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="{Binding Audio_ThreadPriority, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               VerticalAlignment="Center" Width="150"/>
+                                    <ComboBox ItemsSource="{Binding AvailableThreadPriorities}"
+                                              SelectedItem="{Binding SelectedThreadPriority}"
+                                              DisplayMemberPath="DisplayName"
+                                              Width="120"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Audio_ThreadPriorityHint, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           Foreground="Gray" Margin="150,2,0,0" FontSize="11"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Кнопка сохранения -->
+                        <Button Content="{Binding Settings_Save, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding SaveSettingsCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="20,8" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Вкладка "Правила приложений" -->
+            <TabItem Header="{Binding Settings_AppRules, Source={x:Static loc:LocalizationManager.Instance}}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Описание -->
+                    <TextBlock Grid.Row="0" Text="{Binding Rules_Description, Source={x:Static loc:LocalizationManager.Instance}}"
+                               TextWrapping="Wrap" Margin="0,0,0,10" Foreground="Gray"/>
+
+                    <!-- Список правил -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding ProfileRules}"
+                              SelectedItem="{Binding SelectedRule}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              Margin="0,0,0,10">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="" Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}" Width="30"/>
+                            <DataGridTextColumn Header="{Binding Rules_Application, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                Binding="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                            <DataGridTextColumn Header="{Binding Rules_Process, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                Binding="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                            <DataGridTemplateColumn Header="{Binding Rules_Profile, Source={x:Static loc:LocalizationManager.Instance}}" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TargetProfile, Converter={StaticResource ProfileModeToStringConverter}}"
+                                                   VerticalAlignment="Center" Margin="5,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedItem="{Binding TargetProfile, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBox.ItemsSource>
+                                                <x:Array Type="{x:Type models:ProfileMode}">
+                                                    <models:ProfileMode>Music</models:ProfileMode>
+                                                    <models:ProfileMode>Calls</models:ProfileMode>
+                                                </x:Array>
+                                            </ComboBox.ItemsSource>
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource ProfileModeToStringConverter}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="{Binding Rules_Priority, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                Binding="{Binding Priority, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Кнопки управления -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <Button Content="{Binding Rules_Add, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding AddRuleCommand}" Padding="10,5" Margin="0,0,5,0"/>
+                        <Button Content="{Binding Rules_Remove, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding RemoveRuleCommand}" Padding="10,5" Margin="0,0,5,0"/>
+                        <Button Content="{Binding Rules_MoveUp, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding MoveRuleUpCommand}" Padding="10,5" Margin="0,0,5,0"/>
+                        <Button Content="{Binding Rules_MoveDown, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding MoveRuleDownCommand}" Padding="10,5" Margin="0,0,5,0"/>
+                        <Button Content="{Binding Rules_Reset, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding ResetRulesToDefaultsCommand}" Padding="10,5" Margin="20,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка "Диагностика" -->
+            <TabItem Header="{Binding Tab_Diagnostics, Source={x:Static loc:LocalizationManager.Instance}}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- Предупреждение для Intel адаптеров / AAC требует перезагрузки -->
+                            <Border Background="#FFF3E0" BorderBrush="#FF9800" BorderThickness="1" CornerRadius="4"
+                                    Padding="12" Margin="0,0,0,10"
+                                    Visibility="{Binding ShowIntelAACWarning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Diag_IntelAdapterDetected, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               FontWeight="SemiBold" FontSize="12" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{Binding IntelAACWarningText}"
+                                               TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"/>
+                                    <!-- Кнопка только если AAC ещё включён в реестре -->
+                                    <Button Content="{Binding Diag_DisableAAC, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding ToggleAACCommand}"
+                                            HorizontalAlignment="Left" Padding="12,4"
+                                            Visibility="{Binding IsAACEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Предупреждение о необходимости переподключения -->
+                            <Border Background="#E3F2FD" BorderBrush="#2196F3" BorderThickness="1" CornerRadius="4"
+                                    Padding="12" Margin="0,0,0,10"
+                                    Visibility="{Binding ShowReconnectWarning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Diag_ReconnectWarning, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               TextWrapping="Wrap" FontSize="12" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1"
+                                            Content="{Binding Diag_RestartBluetooth, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding RestartBluetoothCommand}"
+                                            Padding="12,4" Margin="10,0,0,0"/>
+                                    <Button Grid.Column="2"
+                                            Content="{Binding Diag_Dismiss, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding DismissReconnectWarningCommand}"
+                                            Padding="12,4" Margin="5,0,0,0"/>
+                                </Grid>
+                            </Border>
+
+                            <GroupBox Header="Bluetooth">
+                                <TextBlock Text="{Binding DiagBluetoothInfo}" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11"/>
+                            </GroupBox>
+                            <GroupBox Header="{Binding Diag_Audio, Source={x:Static loc:LocalizationManager.Instance}}">
+                                <TextBlock Text="{Binding DiagAudioInfo}" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11"/>
+                            </GroupBox>
+                            <GroupBox Header="{Binding Diag_Codec, Source={x:Static loc:LocalizationManager.Instance}}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding DiagCodecInfo}" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11"/>
+
+                                    <!-- Кнопка переключения AAC -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <TextBlock Text="{Binding Diag_AACStatus, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <Button Command="{Binding ToggleAACCommand}" Padding="10,4">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Content" Value="{Binding Diag_DisableAAC, Source={x:Static loc:LocalizationManager.Instance}}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAACEnabled}" Value="False">
+                                                            <Setter Property="Content" Value="{Binding Diag_EnableAAC, Source={x:Static loc:LocalizationManager.Instance}}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Diag_DisableAACHint, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               TextWrapping="Wrap" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!-- Сравнение кодеков -->
+                            <GroupBox Header="{Binding Codec_TableHeader, Source={x:Static loc:LocalizationManager.Instance}}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Codec_ColumnCodec, Source={x:Static loc:LocalizationManager.Instance}}" FontWeight="Bold"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Codec_ColumnBitrate, Source={x:Static loc:LocalizationManager.Instance}}" FontWeight="Bold"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_ColumnQuality, Source={x:Static loc:LocalizationManager.Instance}}" FontWeight="Bold"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding Codec_ColumnNote, Source={x:Static loc:LocalizationManager.Instance}}" FontWeight="Bold"/>
+                                    </Grid>
+                                    <Rectangle Height="1" Fill="LightGray" Margin="0,2,0,5"/>
+                                    <!-- SBC -->
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="SBC" Foreground="{Binding SbcStatusColor}"/>
+                                        <TextBlock Grid.Column="1" Text="328 kbps" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_Quality_Basic, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding Codec_Note_SBC, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray" FontSize="11"/>
+                                    </Grid>
+                                    <!-- AAC -->
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="AAC" Foreground="{Binding AacStatusColor}"/>
+                                        <TextBlock Grid.Column="1" Text="256 kbps" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_Quality_Good, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding AacStatusText}" Foreground="Gray" FontSize="11"/>
+                                    </Grid>
+                                    <!-- aptX -->
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="aptX" Foreground="{Binding AptxStatusColor}"/>
+                                        <TextBlock Grid.Column="1" Text="352 kbps" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_Quality_Excellent, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding AptxStatusText}" Foreground="Gray" FontSize="11"/>
+                                    </Grid>
+                                    <!-- aptX HD -->
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="aptX HD" Foreground="{Binding AptxHdStatusColor}"/>
+                                        <TextBlock Grid.Column="1" Text="576 kbps" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_Quality_High, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding AptxHdStatusText}" Foreground="Gray" FontSize="11"/>
+                                    </Grid>
+                                    <!-- LDAC -->
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="LDAC" Foreground="{Binding LdacStatusColor}"/>
+                                        <TextBlock Grid.Column="1" Text="990 kbps" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Codec_Quality_HiRes, Source={x:Static loc:LocalizationManager.Instance}}" Foreground="Gray"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding LdacStatusText}" Foreground="Gray" FontSize="11"/>
+                                    </Grid>
+                                    <Rectangle Height="1" Fill="LightGray" Margin="0,8,0,5"/>
+                                    <TextBlock Text="{Binding Codec_TableNote, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               TextWrapping="Wrap" Foreground="Gray" FontSize="11"/>
+                                </StackPanel>
+                            </GroupBox>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+                        <Button Content="{Binding Settings_Refresh, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding RefreshDiagnosticsCommand}" Padding="15,6" Margin="0,0,10,0"/>
+                        <Button Content="{Binding Diag_OpenLogs, Source={x:Static loc:LocalizationManager.Instance}}"
+                                Command="{Binding OpenLogFolderCommand}" Padding="15,6"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка "О программе" -->
+            <TabItem Header="{Binding Tab_About, Source={x:Static loc:LocalizationManager.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <StackPanel>
+                        <!-- Заголовок -->
+                        <TextBlock Text="A2DP Commander" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,10,0,5"/>
+                        <TextBlock x:Name="VersionText" FontSize="13" Foreground="Gray" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+                        <!-- Описание -->
+                        <Border Background="#F5F5F5" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                            <TextBlock Text="{Binding About_Description, Source={x:Static loc:LocalizationManager.Instance}}"
+                                       TextWrapping="Wrap" FontSize="13" LineHeight="20"/>
+                        </Border>
+
+                        <!-- GitHub -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="GitHub: " FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock FontSize="13" VerticalAlignment="Center">
+                                <Hyperlink x:Name="GitHubLink" Click="GitHubLink_Click">
+                                    https://github.com/Yumash/A2DP-Commander
+                                </Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Автор -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="{Binding About_Author, Source={x:Static loc:LocalizationManager.Instance}}"
+                                       FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock Text="{Binding About_AuthorName, Source={x:Static loc:LocalizationManager.Instance}}"
+                                       FontSize="13" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- Донаты -->
+                        <Border Background="#FFF8E1" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="{Binding About_Support, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding About_SupportDesc, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           TextWrapping="Wrap" FontSize="12" Foreground="#666" Margin="0,0,0,10"/>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="BTC:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <Border Background="White" CornerRadius="4" Padding="8,5" BorderBrush="#DDD" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="1BkYvFT8iBVG3GfTqkR2aBkABNkTrhYuja"
+                                                       FontFamily="Consolas" FontSize="11" VerticalAlignment="Center"/>
+                                            <Button x:Name="CopyBtcButton" Content="{Binding About_Copy, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                    Click="CopyBtcButton_Click"
+                                                    Padding="8,2" Margin="10,0,0,0" FontSize="11"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Язык -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="{Binding Settings_Language, Source={x:Static loc:LocalizationManager.Instance}}"
+                                       FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                                      SelectedValue="{Binding SelectedLanguage}"
+                                      SelectedValuePath="Code"
+                                      DisplayMemberPath="Name"
+                                      Width="150"/>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding About_License, Source={x:Static loc:LocalizationManager.Instance}}"
+                                   FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

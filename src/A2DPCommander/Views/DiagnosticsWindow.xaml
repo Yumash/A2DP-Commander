@@ -1,0 +1,86 @@
+<Window x:Class="BTAudioDriver.Views.DiagnosticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:BTAudioDriver.ViewModels"
+        mc:Ignorable="d"
+        Title="A2DP Commander — Диагностика"
+        Width="600" Height="550"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        ShowInTaskbar="True"
+        d:DataContext="{d:DesignInstance Type=vm:DiagnosticsViewModel}">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Статус устройства -->
+        <Border Grid.Row="0" Background="#E3F2FD" CornerRadius="5" Padding="15" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding DeviceStatus}" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding CurrentMode, StringFormat='Режим: {0}'}" Foreground="Gray"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Обновить" Command="{Binding RefreshCommand}"
+                        Padding="15,8" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Вкладки с информацией -->
+        <TabControl Grid.Row="1">
+            <TabItem Header="Bluetooth">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <TextBlock Text="{Binding BluetoothInfo}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Аудио">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <TextBlock Text="{Binding AudioInfo}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Кодек">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <TextBlock Text="{Binding CodecInfo}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Настройки">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <TextBlock Text="{Binding SettingsInfo}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Логи">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ListBox Grid.Row="0" ItemsSource="{Binding LogEntries}"
+                             FontFamily="Consolas" FontSize="11"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             VirtualizingPanel.ScrollUnit="Pixel"/>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Открыть папку логов" Command="{Binding OpenLogFolderCommand}"
+                                Padding="15,5" Margin="0,0,10,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Экспорт диагностики" Command="{Binding ExportDiagnosticsCommand}"
+                    Padding="15,8" Margin="0,0,10,0"/>
+            <Button Content="Закрыть" Click="CloseButton_Click"
+                    IsCancel="True" Padding="15,8"/>
+        </StackPanel>
+    </Grid>
+</Window>
