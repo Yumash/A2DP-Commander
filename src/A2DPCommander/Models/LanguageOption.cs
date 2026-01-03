@@ -16,9 +16,9 @@ public class ThreadPriorityOption
 
     public string DisplayName => Value switch
     {
-        AudioThreadPriority.Normal => Strings.CurrentLanguage == Language.Russian ? "Обычный" : "Normal",
-        AudioThreadPriority.High => Strings.CurrentLanguage == Language.Russian ? "Высокий" : "High",
-        AudioThreadPriority.Critical => Strings.CurrentLanguage == Language.Russian ? "Критический" : "Critical",
+        AudioThreadPriority.Normal => Strings.Priority_Normal,
+        AudioThreadPriority.High => Strings.Priority_High,
+        AudioThreadPriority.Critical => Strings.Priority_Critical,
         _ => Value.ToString()
     };
 

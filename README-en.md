@@ -2,6 +2,8 @@
 
 A free Windows utility for managing Bluetooth audio profiles (A2DP/HFP). Solves the problem of incorrect automatic profile switching in Windows.
 
+**Version:** 1.0.1 | **Languages:** Русский, English
+
 ---
 
 ## Table of Contents
@@ -107,6 +109,8 @@ When AAC is disabled, Windows will fall back to SBC codec, which may have slight
 ### IMPORTANT: Restart Required
 
 **Changing the AAC setting requires a full computer restart to take effect.** The Bluetooth stack reads this registry value only during system startup. Simply reconnecting your headphones or restarting the Bluetooth service will NOT apply the change.
+
+In version 1.0.1, the "Restart Bluetooth" feature was removed as it could cause the Bluetooth adapter to become disabled. The program now offers a safe system reboot to apply AAC changes.
 
 ---
 

@@ -25,6 +25,4 @@ public interface IAudioQualityService
     CodecRegistryInfo GetCodecRegistryInfo();
 
     BluetoothAdapterInfo GetBluetoothAdapterInfo();
-
-    Task<bool> RestartBluetoothA2dpServiceAsync();
 }

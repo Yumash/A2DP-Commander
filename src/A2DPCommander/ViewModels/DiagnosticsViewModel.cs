@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using BTAudioDriver.Localization;
 using BTAudioDriver.Models;
 using BTAudioDriver.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,22 +21,22 @@ public partial class DiagnosticsViewModel : ObservableObject
     private readonly IAudioQualityService? _audioQualityService;
 
     [ObservableProperty]
-    private string _deviceStatus = "Неизвестно";
+    private string _deviceStatus = "";
 
     [ObservableProperty]
-    private string _currentMode = "Неизвестно";
+    private string _currentMode = "";
 
     [ObservableProperty]
-    private string _bluetoothInfo = "Загрузка...";
+    private string _bluetoothInfo = "";
 
     [ObservableProperty]
-    private string _audioInfo = "Загрузка...";
+    private string _audioInfo = "";
 
     [ObservableProperty]
-    private string _codecInfo = "Загрузка...";
+    private string _codecInfo = "";
 
     [ObservableProperty]
-    private string _settingsInfo = "Загрузка...";
+    private string _settingsInfo = "";
 
     [ObservableProperty]
     private ObservableCollection<string> _logEntries = new();
@@ -80,28 +81,28 @@ public partial class DiagnosticsViewModel : ObservableObject
             if (connectedDevices.Any())
             {
                 var device = connectedDevices.First();
-                DeviceStatus = $"{device.Name} — Подключено";
+                DeviceStatus = $"{device.Name} — {Strings.Device_Connected}";
                 BluetoothInfo = $"ID: {device.Id}\n" +
                                $"MAC: {device.MacAddress}\n" +
-                               $"A2DP: {(device.SupportsA2dp ? "Да" : "Нет")}\n" +
-                               $"HFP: {(device.SupportsHfp ? "Да" : "Нет")}\n" +
-                               $"AVRCP: {(device.SupportsAvrcp ? "Да" : "Нет")}";
+                               $"{Strings.Diag_A2dpSupported}: {(device.SupportsA2dp ? Strings.Diag_Yes : Strings.Diag_No)}\n" +
+                               $"{Strings.Diag_HfpSupported}: {(device.SupportsHfp ? Strings.Diag_Yes : Strings.Diag_No)}\n" +
+                               $"{Strings.Diag_AvrcpSupported}: {(device.SupportsAvrcp ? Strings.Diag_Yes : Strings.Diag_No)}";
             }
             else
             {
-                DeviceStatus = "Нет подключённых устройств";
-                BluetoothInfo = $"Сопряжённых устройств: {devices.Count}";
+                DeviceStatus = Strings.Diag_NoConnectedDevices;
+                BluetoothInfo = $"{Strings.Diag_PairedDevices}: {devices.Count}";
             }
 
             var deviceName = _settingsService.Settings.DefaultDeviceName;
             var state = await _profileManager.GetDeviceProfileStateAsync(deviceName);
-            CurrentMode = state?.CurrentMode.ToString() ?? "Неизвестно";
+            CurrentMode = state?.CurrentMode.ToString() ?? Strings.Status_Unknown;
 
             var playbackEndpoints = _audioService.GetPlaybackEndpoints();
             var btEndpoints = _audioService.GetBluetoothEndpoints();
 
-            AudioInfo = $"Устройств воспроизведения: {playbackEndpoints.Count}\n" +
-                       $"Bluetooth устройств: {btEndpoints.Count}\n" +
+            AudioInfo = $"{Strings.Diag_PlaybackDevices}: {playbackEndpoints.Count}\n" +
+                       $"Bluetooth: {btEndpoints.Count}\n" +
                        string.Join("\n", btEndpoints.Select(e => $"  - {e.FriendlyName} ({e.BluetoothProfile})"));
 
             if (_audioQualityService != null)
@@ -109,37 +110,37 @@ public partial class DiagnosticsViewModel : ObservableObject
                 var qualityInfo = _audioQualityService.GetCurrentQualityInfo(deviceName);
                 if (qualityInfo != null)
                 {
-                    CodecInfo = $"Кодек: {qualityInfo.CodecName}\n" +
-                               $"Частота: {qualityInfo.SampleRate / 1000.0:F1} kHz\n" +
-                               $"Глубина: {qualityInfo.BitDepth} bit\n" +
-                               $"Каналы: {qualityInfo.Channels}\n" +
-                               $"Битрейт: ~{qualityInfo.Bitrate} kbps\n" +
-                               $"Улучшения Windows: {(qualityInfo.EnhancementsEnabled ? "Включены" : "Отключены")}\n" +
-                               $"Поддерживаемые кодеки: {string.Join(", ", qualityInfo.SupportedCodecs)}";
+                    CodecInfo = $"{Strings.Diag_CodecLabel}: {qualityInfo.CodecName}\n" +
+                               $"{Strings.Diag_Frequency}: {qualityInfo.SampleRate / 1000.0:F1} kHz\n" +
+                               $"{Strings.Diag_BitDepth}: {qualityInfo.BitDepth} bit\n" +
+                               $"{Strings.Diag_Channels}: {qualityInfo.Channels}\n" +
+                               $"{Strings.Diag_Bitrate}: ~{qualityInfo.Bitrate} kbps\n" +
+                               $"{(qualityInfo.EnhancementsEnabled ? Strings.Diag_EnhancementsEnabled : Strings.Diag_EnhancementsDisabled)}\n" +
+                               $"{Strings.Codec_SupportedCodecs} {string.Join(", ", qualityInfo.SupportedCodecs)}";
                 }
                 else
                 {
-                    CodecInfo = "Информация о кодеке недоступна";
+                    CodecInfo = Strings.Diag_CodecInfoUnavailable;
                 }
             }
             else
             {
-                CodecInfo = "Сервис качества звука не инициализирован";
+                CodecInfo = Strings.Diag_ServiceNotInit;
             }
 
             var settings = _settingsService.Settings;
-            SettingsInfo = $"Устройство: {settings.DefaultDeviceName}\n" +
-                          $"Режим по умолчанию: {settings.DefaultMode}\n" +
-                          $"Автозапуск: {(settings.AutoStart ? "Да" : "Нет")}\n" +
-                          $"Автопереключение: {(settings.AutoSwitchByApp ? "Да" : "Нет")}\n" +
-                          $"Уведомления: {(settings.ShowNotifications ? "Да" : "Нет")}";
+            SettingsInfo = $"{Strings.Diag_Device}: {settings.DefaultDeviceName}\n" +
+                          $"{Strings.Settings_DefaultMode}: {settings.DefaultMode}\n" +
+                          $"{Strings.Diag_AutoStart}: {(settings.AutoStart ? Strings.Diag_Yes : Strings.Diag_No)}\n" +
+                          $"{Strings.Diag_AutoSwitch}: {(settings.AutoSwitchByApp ? Strings.Diag_Yes : Strings.Diag_No)}\n" +
+                          $"{Strings.Diag_Notifications}: {(settings.ShowNotifications ? Strings.Diag_Yes : Strings.Diag_No)}";
 
             await LoadRecentLogsAsync();
         }
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to refresh diagnostics");
-            DeviceStatus = "Ошибка получения данных";
+            DeviceStatus = Strings.Diag_ErrorGettingData;
         }
         finally
         {
@@ -155,7 +156,7 @@ public partial class DiagnosticsViewModel : ObservableObject
             if (!logDir.Exists)
             {
                 LogEntries.Clear();
-                LogEntries.Add("Логи не найдены");
+                LogEntries.Add(Strings.Diag_NoLogsFound);
                 return;
             }
 
@@ -166,7 +167,7 @@ public partial class DiagnosticsViewModel : ObservableObject
             if (latestLog == null)
             {
                 LogEntries.Clear();
-                LogEntries.Add("Логи не найдены");
+                LogEntries.Add(Strings.Diag_NoLogsFound);
                 return;
             }
 
@@ -183,7 +184,7 @@ public partial class DiagnosticsViewModel : ObservableObject
         {
             Logger.Warning(ex, "Failed to load logs");
             LogEntries.Clear();
-            LogEntries.Add($"Ошибка чтения логов: {ex.Message}");
+            LogEntries.Add($"{Strings.Status_Error}: {ex.Message}");
         }
     }
 
@@ -203,8 +204,8 @@ public partial class DiagnosticsViewModel : ObservableObject
             else
             {
                 System.Windows.MessageBox.Show(
-                    "Папка с логами не найдена",
-                    "BT Audio Driver",
+                    Strings.Notification_LogsFolderNotFound,
+                    Strings.AppName,
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
             }
@@ -222,7 +223,7 @@ public partial class DiagnosticsViewModel : ObservableObject
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                FileName = $"BTAudioDriver_Diagnostics_{DateTime.Now:yyyyMMdd_HHmmss}",
+                FileName = $"A2DPCommander_Diagnostics_{DateTime.Now:yyyyMMdd_HHmmss}",
                 DefaultExt = ".txt",
                 Filter = "Text files (*.txt)|*.txt"
             };
@@ -233,8 +234,8 @@ public partial class DiagnosticsViewModel : ObservableObject
                 await File.WriteAllTextAsync(dialog.FileName, report);
 
                 System.Windows.MessageBox.Show(
-                    $"Диагностика сохранена в:\n{dialog.FileName}",
-                    "BT Audio Driver",
+                    $"{dialog.FileName}",
+                    Strings.AppName,
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Information);
             }
@@ -243,8 +244,8 @@ public partial class DiagnosticsViewModel : ObservableObject
         {
             Logger.Error(ex, "Failed to export diagnostics");
             System.Windows.MessageBox.Show(
-                $"Ошибка экспорта: {ex.Message}",
-                "BT Audio Driver",
+                $"{Strings.Status_Error}: {ex.Message}",
+                Strings.AppName,
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Error);
         }
@@ -253,26 +254,26 @@ public partial class DiagnosticsViewModel : ObservableObject
     private string GenerateDiagnosticsReport()
     {
         return $"""
-            === BT Audio Driver Diagnostics ===
-            Дата: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+            === A2DP Commander Diagnostics ===
+            Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
 
-            === Устройство ===
+            === Device ===
             {DeviceStatus}
-            Текущий режим: {CurrentMode}
+            Mode: {CurrentMode}
 
             === Bluetooth ===
             {BluetoothInfo}
 
-            === Аудио ===
+            === Audio ===
             {AudioInfo}
 
-            === Качество звука ===
+            === Codec ===
             {CodecInfo}
 
-            === Настройки ===
+            === Settings ===
             {SettingsInfo}
 
-            === Последние логи ===
+            === Logs ===
             {string.Join("\n", LogEntries)}
             """;
     }

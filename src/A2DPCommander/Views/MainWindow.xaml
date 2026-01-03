@@ -365,8 +365,8 @@
                                                Text="{Binding Diag_ReconnectWarning, Source={x:Static loc:LocalizationManager.Instance}}"
                                                TextWrapping="Wrap" FontSize="12" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1"
-                                            Content="{Binding Diag_RestartBluetooth, Source={x:Static loc:LocalizationManager.Instance}}"
-                                            Command="{Binding RestartBluetoothCommand}"
+                                            Content="{Binding Diag_RebootRequired, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding RequestRebootCommand}"
                                             Padding="12,4" Margin="10,0,0,0"/>
                                     <Button Grid.Column="2"
                                             Content="{Binding Diag_Dismiss, Source={x:Static loc:LocalizationManager.Instance}}"

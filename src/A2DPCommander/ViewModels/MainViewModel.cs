@@ -137,7 +137,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     #region Audio Quality Properties
 
     [ObservableProperty]
-    private string _currentCodecInfo = "Нажмите 'Обновить' для получения информации";
+    private string _currentCodecInfo = "";
 
     [ObservableProperty]
     private BluetoothCodec _preferredCodec = BluetoothCodec.Auto;
@@ -303,7 +303,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Logger.Fatal(ex, "Critical error during initialization");
-            StatusText = "Критическая ошибка инициализации";
+            StatusText = Strings.Status_CriticalError;
         }
     }
 
@@ -378,7 +378,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to initialize MainViewModel");
-            StatusText = "Ошибка инициализации";
+            StatusText = Strings.Status_InitError;
         }
     }
 
@@ -396,7 +396,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
             else
             {
-                StatusText = "Устройство не подключено";
+                StatusText = Strings.Status_DeviceNotConnected;
             }
 
             _trayIcon.UpdateState(state);
@@ -411,7 +411,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to refresh state");
-            StatusText = "Ошибка";
+            StatusText = Strings.Status_Error;
         }
     }
 
@@ -440,13 +440,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!_profileManager.IsRunningAsAdmin)
         {
-            ShowNotification("Требуются права администратора для смены режима",
+            ShowNotification(Strings.Notification_AdminRequired,
                 System.Windows.Forms.ToolTipIcon.Warning);
             return;
         }
 
         Logger.Information("Setting Music mode...");
-        StatusText = "Переключение в режим Музыка...";
+        StatusText = $"{Strings.Mode_Music}...";
 
         var success = await _profileManager.SetMusicModeAsync(DefaultDeviceName);
 
@@ -460,9 +460,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         else
         {
-            ShowNotification("Не удалось переключить режим",
+            ShowNotification(Strings.Notification_SwitchFailed,
                 System.Windows.Forms.ToolTipIcon.Error);
-            StatusText = "Ошибка переключения";
+            StatusText = Strings.Status_SwitchError;
         }
     }
 
@@ -471,13 +471,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!_profileManager.IsRunningAsAdmin)
         {
-            ShowNotification("Требуются права администратора для смены режима",
+            ShowNotification(Strings.Notification_AdminRequired,
                 System.Windows.Forms.ToolTipIcon.Warning);
             return;
         }
 
         Logger.Information("Setting Calls mode...");
-        StatusText = "Переключение в режим Звонки...";
+        StatusText = $"{Strings.Mode_Calls}...";
 
         var success = await _profileManager.SetCallsModeAsync(DefaultDeviceName);
 
@@ -491,9 +491,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         else
         {
-            ShowNotification("Не удалось переключить режим",
+            ShowNotification(Strings.Notification_SwitchFailed,
                 System.Windows.Forms.ToolTipIcon.Error);
-            StatusText = "Ошибка переключения";
+            StatusText = Strings.Status_SwitchError;
         }
     }
 
@@ -701,11 +701,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 _modeBeforeAutoSwitch ??= CurrentState?.CurrentMode;
 
-                var ruleName = e.TriggeringRule?.DisplayName ?? e.ProcessName ?? "приложение";
+                var ruleName = e.TriggeringRule?.DisplayName ?? e.ProcessName ?? Strings.App_Application;
                 Logger.Information("Profile change required by {Rule}: switching to {Profile}",
                     ruleName, e.RequiredProfile.Value);
 
-                ShowNotification($"{ruleName}: переключаюсь на режим {GetModeName(e.RequiredProfile.Value)}");
+                ShowNotification($"{ruleName}: {GetModeName(e.RequiredProfile.Value)}");
                 await SetModeAsync(e.RequiredProfile.Value);
             }
             else
@@ -714,7 +714,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 Logger.Information("No more profile rules active, switching back to {Mode}", targetMode);
 
-                ShowNotification($"Возвращаюсь к режиму {GetModeName(targetMode)}");
+                ShowNotification(GetModeName(targetMode));
                 await SetModeAsync(targetMode);
 
                 _modeBeforeAutoSwitch = null;
@@ -724,8 +724,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private static string GetModeName(ProfileMode mode) => mode switch
     {
-        ProfileMode.Music => "Музыка",
-        ProfileMode.Calls => "Звонки",
+        ProfileMode.Music => Strings.Mode_Music,
+        ProfileMode.Calls => Strings.Mode_Calls,
         _ => mode.ToString()
     };
 
@@ -870,23 +870,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         var aptxSupported = supported.Contains(BluetoothCodec.AptX);
         AptxStatusColor = current == BluetoothCodec.AptX ? "#007ACC" : (aptxSupported ? "Green" : "Gray");
-        AptxStatusText = aptxSupported ? "Доступен (Qualcomm)" : Strings.Codec_Note_NeedsAdapter;
+        AptxStatusText = aptxSupported ? $"{Strings.Audio_AptxHdAvailable} (Qualcomm)" : Strings.Codec_Note_NeedsAdapter;
 
         var aptxHdSupported = supported.Contains(BluetoothCodec.AptXHD);
         AptxHdStatusColor = current == BluetoothCodec.AptXHD ? "#007ACC" : (aptxHdSupported ? "Green" : "Gray");
-        AptxHdStatusText = aptxHdSupported ? "Доступен" : Strings.Codec_Note_NeedsAdapter;
+        AptxHdStatusText = aptxHdSupported ? Strings.Audio_AptxHdAvailable : Strings.Codec_Note_NeedsAdapter;
 
         var ldacSupported = supported.Contains(BluetoothCodec.LDAC);
         LdacStatusColor = current == BluetoothCodec.LDAC ? "#007ACC" : (ldacSupported ? "Green" : "Gray");
-        LdacStatusText = ldacSupported ? "Доступен (Sony)" : Strings.Codec_Note_NeedsAdapter;
+        LdacStatusText = ldacSupported ? $"{Strings.Audio_AptxHdAvailable} (Sony)" : Strings.Codec_Note_NeedsAdapter;
     }
 
     private void UpdateCodecStatusesDefault()
     {
-        SupportedCodecsText = "SBC (стандартный)";
+        SupportedCodecsText = "SBC";
         SbcStatusColor = "Green";
         AacStatusColor = Environment.OSVersion.Version.Major >= 10 ? "Green" : "Gray";
-        AacStatusText = Environment.OSVersion.Version.Major >= 10 ? "Доступен (Windows 10+)" : Strings.Codec_Note_RequiresWin10;
+        AacStatusText = Environment.OSVersion.Version.Major >= 10 ? $"{Strings.Audio_AptxHdAvailable} (Windows 10+)" : Strings.Codec_Note_RequiresWin10;
         AptxStatusColor = "Gray";
         AptxStatusText = Strings.Codec_Note_NeedsAdapter;
         AptxHdStatusColor = "Gray";
@@ -897,7 +897,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private static string GetCodecDisplayName(BluetoothCodec codec) => codec switch
     {
-        BluetoothCodec.Auto => "Авто",
+        BluetoothCodec.Auto => Strings.Codec_Auto,
         BluetoothCodec.SBC => "SBC",
         BluetoothCodec.AAC => "AAC",
         BluetoothCodec.AptX => "aptX",
@@ -940,8 +940,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             else
             {
                 System.Windows.MessageBox.Show(
-                    "Не удалось применить некоторые настройки.\nПроверьте логи для подробностей.",
-                    "Внимание",
+                    Strings.Settings_SaveError,
+                    Strings.Dialog_Warning,
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
             }
@@ -1020,8 +1020,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void ResetRulesToDefaults()
     {
         var result = System.Windows.MessageBox.Show(
-            "Сбросить все правила к значениям по умолчанию?",
-            "Подтверждение",
+            Strings.Rules_Reset + "?",
+            Strings.Dialog_Confirm,
             System.Windows.MessageBoxButton.YesNo,
             System.Windows.MessageBoxImage.Question);
 
@@ -1212,70 +1212,40 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task RestartBluetoothAsync()
+    private void RequestReboot()
     {
+        var message = Strings.CurrentLanguage == Language.Russian
+            ? "Для применения изменений настроек AAC требуется перезагрузка компьютера.\n\nПерезагрузить сейчас?"
+            : "A computer restart is required to apply AAC settings changes.\n\nRestart now?";
+
         var result = System.Windows.MessageBox.Show(
-            Strings.Diag_RestartBluetoothConfirm,
+            message,
             Strings.AppName,
             System.Windows.MessageBoxButton.YesNo,
-            System.Windows.MessageBoxImage.Warning);
+            System.Windows.MessageBoxImage.Question);
 
-        if (result != System.Windows.MessageBoxResult.Yes)
-            return;
-
-        var expectedAacEnabled = _audioQualityService.IsAACEnabled();
-        Logger.Information("User requested Bluetooth restart. Expected AAC state: {Expected}", expectedAacEnabled ? "Enabled" : "Disabled");
-        StatusText = Strings.Diag_RestartingBluetooth;
-
-        try
+        if (result == System.Windows.MessageBoxResult.Yes)
         {
-            var success = await _audioQualityService.RestartBluetoothA2dpServiceAsync();
-
-            if (success)
+            Logger.Information("User requested system reboot to apply AAC changes");
+            try
             {
-                ShowReconnectWarning = false;
-
-                await Task.Delay(5000);
-                await RefreshDiagnosticsAsync();
-
-                var currentCodec = CurrentCodecInfo;
-                var isAacUsed = currentCodec.Contains("AAC", StringComparison.OrdinalIgnoreCase);
-
-                if (!expectedAacEnabled && isAacUsed)
+                Process.Start(new ProcessStartInfo
                 {
-                    Logger.Warning("AAC still in use after restart! Expected disabled. Current codec: {Codec}", currentCodec);
-                    var msg = Strings.CurrentLanguage == Language.Russian
-                        ? $"Bluetooth перезапущен, но AAC всё ещё используется ({currentCodec}).\n\nПопробуйте:\n1. Отключить и включить Bluetooth в настройках Windows\n2. Переподключить наушники вручную"
-                        : $"Bluetooth restarted, but AAC is still in use ({currentCodec}).\n\nTry:\n1. Toggle Bluetooth off/on in Windows Settings\n2. Manually reconnect headphones";
-
-                    System.Windows.MessageBox.Show(msg, Strings.AppName, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                }
-                else
-                {
-                    Logger.Information("Bluetooth restart successful. Current codec: {Codec}", currentCodec);
-                    ShowNotification(Strings.Diag_RestartBluetoothSuccess, System.Windows.Forms.ToolTipIcon.Info);
-                }
+                    FileName = "shutdown",
+                    Arguments = "/r /t 5 /c \"A2DP Commander: Applying Bluetooth codec settings\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
             }
-            else
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    Strings.Diag_RestartBluetoothFailed,
-                    Strings.AppName,
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Warning);
+                Logger.Error(ex, "Failed to initiate system reboot");
+                var errorMessage = Strings.CurrentLanguage == Language.Russian
+                    ? "Не удалось инициировать перезагрузку.\nПожалуйста, перезагрузите компьютер вручную."
+                    : "Failed to initiate reboot.\nPlease restart your computer manually.";
+                System.Windows.MessageBox.Show(errorMessage, Strings.AppName, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
             }
         }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Failed to restart Bluetooth");
-            System.Windows.MessageBox.Show(
-                Strings.Diag_RestartBluetoothFailed,
-                Strings.AppName,
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Error);
-        }
-
-        await RefreshStateAsync();
     }
 
     [RelayCommand]
@@ -1298,8 +1268,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             else
             {
                 System.Windows.MessageBox.Show(
-                    "Папка с логами не найдена",
-                    "A2DP Commander",
+                    Strings.Notification_LogsFolderNotFound,
+                    Strings.AppName,
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
             }

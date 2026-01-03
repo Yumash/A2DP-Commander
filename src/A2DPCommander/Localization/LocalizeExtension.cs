@@ -140,7 +140,7 @@ public class LocalizationManager : System.ComponentModel.INotifyPropertyChanged
     public string Diag_DisableAACHint => Strings.Diag_DisableAACHint;
     public string Diag_ReconnectWarning => Strings.Diag_ReconnectWarning;
     public string Diag_Dismiss => Strings.Diag_Dismiss;
-    public string Diag_RestartBluetooth => Strings.Diag_RestartBluetooth;
+    public string Diag_RebootRequired => Strings.Diag_RebootRequired;
 
     public string Audio_CurrentStatus => Strings.Audio_CurrentStatus;
     public string Audio_RefreshInfo => Strings.Audio_RefreshInfo;

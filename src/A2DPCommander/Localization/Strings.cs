@@ -188,11 +188,7 @@ public static class Strings
     public static string Diag_BluetoothAdapter => Get("Diag.BluetoothAdapter");
     public static string Diag_ReconnectWarning => Get("Diag.ReconnectWarning");
     public static string Diag_Dismiss => Get("Diag.Dismiss");
-    public static string Diag_RestartBluetooth => Get("Diag.RestartBluetooth");
-    public static string Diag_RestartBluetoothConfirm => Get("Diag.RestartBluetoothConfirm");
-    public static string Diag_RestartingBluetooth => Get("Diag.RestartingBluetooth");
-    public static string Diag_RestartBluetoothSuccess => Get("Diag.RestartBluetoothSuccess");
-    public static string Diag_RestartBluetoothFailed => Get("Diag.RestartBluetoothFailed");
+    public static string Diag_RebootRequired => Get("Diag.RebootRequired");
 
     public static string Codec_TableHeader => Get("Codec.TableHeader");
     public static string Codec_ColumnCodec => Get("Codec.ColumnCodec");
@@ -225,6 +221,42 @@ public static class Strings
     public static string CodecDesc_AptX => Get("CodecDesc.AptX");
     public static string CodecDesc_AptXHD => Get("CodecDesc.AptXHD");
     public static string CodecDesc_LDAC => Get("CodecDesc.LDAC");
+
+    public static string Status_CriticalError => Get("Status.CriticalError");
+    public static string Status_InitError => Get("Status.InitError");
+    public static string Status_DeviceNotConnected => Get("Status.DeviceNotConnected");
+    public static string Status_Error => Get("Status.Error");
+    public static string Status_SwitchError => Get("Status.SwitchError");
+    public static string Status_Unknown => Get("Status.Unknown");
+
+    public static string Notification_AdminRequired => Get("Notification.AdminRequired");
+    public static string Notification_SwitchFailed => Get("Notification.SwitchFailed");
+    public static string Notification_LogsFolderNotFound => Get("Notification.LogsFolderNotFound");
+
+    public static string Dialog_Warning => Get("Dialog.Warning");
+    public static string Dialog_Confirm => Get("Dialog.Confirm");
+
+    public static string Audio_ClickRefresh => Get("Audio.ClickRefresh");
+    public static string Audio_AptxHdAvailable => Get("Audio.AptxHdAvailable");
+
+    public static string Priority_Normal => Get("Priority.Normal");
+    public static string Priority_High => Get("Priority.High");
+    public static string Priority_Critical => Get("Priority.Critical");
+
+    public static string Diag_A2dpSupported => Get("Diag.A2dpSupported");
+    public static string Diag_HfpSupported => Get("Diag.HfpSupported");
+    public static string Diag_AvrcpSupported => Get("Diag.AvrcpSupported");
+    public static string Diag_EnhancementsEnabled => Get("Diag.EnhancementsEnabled");
+    public static string Diag_EnhancementsDisabled => Get("Diag.EnhancementsDisabled");
+    public static string Diag_CodecInfoUnavailable => Get("Diag.CodecInfoUnavailable");
+    public static string Diag_ServiceNotInit => Get("Diag.ServiceNotInit");
+    public static string Diag_AutoStart => Get("Diag.AutoStart");
+    public static string Diag_AutoSwitch => Get("Diag.AutoSwitch");
+    public static string Diag_Notifications => Get("Diag.Notifications");
+    public static string Diag_ErrorGettingData => Get("Diag.ErrorGettingData");
+    public static string Diag_NoLogsFound => Get("Diag.NoLogsFound");
+
+    public static string App_Application => Get("App.Application");
 
     private static void InitializeStrings()
     {
@@ -382,13 +414,9 @@ public static class Strings
         Add("Diag.EnableAAC", "Включить AAC", "Enable AAC");
         Add("Diag.AACStatus", "Статус AAC:", "AAC Status:");
         Add("Diag.BluetoothAdapter", "Bluetooth адаптер:", "Bluetooth adapter:");
-        Add("Diag.ReconnectWarning", "Настройки AAC изменены! Нажмите кнопку перезапуска или перезагрузите компьютер.", "AAC settings changed! Click restart button or reboot your computer.");
+        Add("Diag.ReconnectWarning", "Настройки AAC изменены! Для применения требуется перезагрузка компьютера.", "AAC settings changed! A computer restart is required to apply changes.");
         Add("Diag.Dismiss", "Понятно", "Dismiss");
-        Add("Diag.RestartBluetooth", "Перезапустить Bluetooth", "Restart Bluetooth");
-        Add("Diag.RestartBluetoothConfirm", "Перезапустить Bluetooth стек?\n\nВсе Bluetooth устройства будут временно отключены и автоматически переподключатся.\n\nЭто нужно для применения изменений AAC.", "Restart Bluetooth stack?\n\nAll Bluetooth devices will be temporarily disconnected and automatically reconnect.\n\nThis is needed to apply AAC changes.");
-        Add("Diag.RestartingBluetooth", "Перезапуск Bluetooth...", "Restarting Bluetooth...");
-        Add("Diag.RestartBluetoothSuccess", "Bluetooth перезапущен. Устройства переподключатся автоматически.", "Bluetooth restarted. Devices will reconnect automatically.");
-        Add("Diag.RestartBluetoothFailed", "Не удалось перезапустить Bluetooth.\n\nДля применения изменений AAC перезагрузите компьютер.", "Failed to restart Bluetooth.\n\nRestart your computer to apply AAC changes.");
+        Add("Diag.RebootRequired", "Перезагрузить", "Reboot");
 
         Add("Codec.TableHeader", "Bluetooth кодеки", "Bluetooth Codecs");
         Add("Codec.ColumnCodec", "Кодек", "Codec");
@@ -422,6 +450,42 @@ public static class Strings
         Add("CodecDesc.AptX", "Отличное качество, 352 kbps. Требует поддержки Qualcomm.", "Excellent quality, 352 kbps. Requires Qualcomm support.");
         Add("CodecDesc.AptXHD", "Высшее качество, 576 kbps. Требует aptX HD поддержки.", "High-end quality, 576 kbps. Requires aptX HD support.");
         Add("CodecDesc.LDAC", "Максимальное качество, до 990 kbps. Требует специальный драйвер.", "Maximum quality, up to 990 kbps. Requires special driver.");
+
+        Add("Status.CriticalError", "Критическая ошибка инициализации", "Critical initialization error");
+        Add("Status.InitError", "Ошибка инициализации", "Initialization error");
+        Add("Status.DeviceNotConnected", "Устройство не подключено", "Device not connected");
+        Add("Status.Error", "Ошибка", "Error");
+        Add("Status.SwitchError", "Ошибка переключения", "Switch error");
+        Add("Status.Unknown", "Неизвестно", "Unknown");
+
+        Add("Notification.AdminRequired", "Требуются права администратора для смены режима", "Administrator rights required to change mode");
+        Add("Notification.SwitchFailed", "Не удалось переключить режим", "Failed to switch mode");
+        Add("Notification.LogsFolderNotFound", "Папка с логами не найдена", "Logs folder not found");
+
+        Add("Dialog.Warning", "Внимание", "Warning");
+        Add("Dialog.Confirm", "Подтверждение", "Confirmation");
+
+        Add("Audio.ClickRefresh", "Нажмите 'Обновить' для получения информации", "Click 'Refresh' to get information");
+        Add("Audio.AptxHdAvailable", "Доступен", "Available");
+
+        Add("Priority.Normal", "Обычный", "Normal");
+        Add("Priority.High", "Высокий", "High");
+        Add("Priority.Critical", "Критический", "Critical");
+
+        Add("Diag.A2dpSupported", "A2DP", "A2DP");
+        Add("Diag.HfpSupported", "HFP", "HFP");
+        Add("Diag.AvrcpSupported", "AVRCP", "AVRCP");
+        Add("Diag.EnhancementsEnabled", "Улучшения Windows: Включены", "Windows Enhancements: Enabled");
+        Add("Diag.EnhancementsDisabled", "Улучшения Windows: Отключены", "Windows Enhancements: Disabled");
+        Add("Diag.CodecInfoUnavailable", "Информация о кодеке недоступна", "Codec information unavailable");
+        Add("Diag.ServiceNotInit", "Сервис качества звука не инициализирован", "Audio quality service not initialized");
+        Add("Diag.AutoStart", "Автозапуск", "Autostart");
+        Add("Diag.AutoSwitch", "Автопереключение", "Auto-switch");
+        Add("Diag.Notifications", "Уведомления", "Notifications");
+        Add("Diag.ErrorGettingData", "Ошибка получения данных", "Error getting data");
+        Add("Diag.NoLogsFound", "Логи не найдены", "No logs found");
+
+        Add("App.Application", "приложение", "application");
     }
 
     private static void Add(string key, string russian, string english)
