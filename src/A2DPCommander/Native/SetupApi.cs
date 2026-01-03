@@ -32,6 +32,9 @@ internal static class SetupApi
 
     public const int ERROR_NO_MORE_ITEMS = 259;
 
+    public const uint DN_STARTED = 0x00000008;
+    public const uint DN_DISABLEABLE = 0x00002000;
+
     #endregion
 
     #region Structures
@@ -138,6 +141,13 @@ internal static class SetupApi
         SafeDevInfoHandle deviceInfoSet,
         ref SP_DEVINFO_DATA deviceInfoData);
 
+    [DllImport("cfgmgr32.dll", SetLastError = true)]
+    public static extern int CM_Get_DevNode_Status(
+        out uint status,
+        out uint problemNumber,
+        int devInst,
+        int flags);
+
     #endregion
 
     #region Helper Methods
@@ -192,6 +202,15 @@ internal static class SetupApi
         }
 
         return SetupDiCallClassInstaller(DIF_PROPERTYCHANGE, deviceInfoSet, ref deviceInfoData);
+    }
+
+    public static uint GetDeviceStatus(SafeDevInfoHandle deviceInfoSet, ref SP_DEVINFO_DATA deviceInfoData)
+    {
+        if (CM_Get_DevNode_Status(out var status, out _, deviceInfoData.DevInst, 0) == 0)
+        {
+            return status;
+        }
+        return 0;
     }
 
     #endregion

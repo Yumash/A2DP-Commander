@@ -25,4 +25,10 @@ public interface IAudioQualityService
     CodecRegistryInfo GetCodecRegistryInfo();
 
     BluetoothAdapterInfo GetBluetoothAdapterInfo();
+
+    bool ApplyMMCSSOptimizations();
+
+    bool RevertMMCSSOptimizations();
+
+    bool AreMMCSSOptimizationsApplied();
 }

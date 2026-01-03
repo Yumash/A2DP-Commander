@@ -22,6 +22,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IProcessWatcherService _processWatcher;
     private readonly IAudioQualityService _audioQualityService;
     private readonly IBluetoothCodecMonitor _codecMonitor;
+    private readonly IBluetoothAdapterService _adapterService;
     private readonly TrayIconManager _trayIcon;
 
     private bool _disposed;
@@ -152,7 +153,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private bool _setAsDefaultDevice = true;
 
     [ObservableProperty]
-    private ThreadPriorityOption _selectedThreadPriority = ThreadPriorityOption.GetAll()[1];
+    private bool _mmcssOptimizationsEnabled;
 
     [ObservableProperty]
     private string _supportedCodecsText = "Загрузка...";
@@ -186,7 +187,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public BluetoothCodec[] AvailableCodecs => Enum.GetValues<BluetoothCodec>();
 
-    public List<ThreadPriorityOption> AvailableThreadPriorities => ThreadPriorityOption.GetAll();
 
     partial void OnPreferredCodecChanged(BluetoothCodec value)
     {
@@ -236,6 +236,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     #endregion
 
+    #region Bluetooth Adapter Properties
+
+    [ObservableProperty]
+    private List<BluetoothAdapterInfo> _availableAdapters = new();
+
+    [ObservableProperty]
+    private BluetoothAdapterInfo? _selectedAdapter;
+
+    [ObservableProperty]
+    private bool _isAdapterSwitching;
+
+    #endregion
+
     public event EventHandler? MinimizeToTrayRequested;
 
     public event EventHandler? ShowMainWindowRequested;
@@ -247,7 +260,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ISettingsService settingsService,
         IProcessWatcherService processWatcher,
         IAudioQualityService audioQualityService,
-        IBluetoothCodecMonitor codecMonitor)
+        IBluetoothCodecMonitor codecMonitor,
+        IBluetoothAdapterService adapterService)
     {
         _bluetoothService = bluetoothService;
         _audioService = audioService;
@@ -256,6 +270,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _processWatcher = processWatcher;
         _audioQualityService = audioQualityService;
         _codecMonitor = codecMonitor;
+        _adapterService = adapterService;
 
         _trayIcon = new TrayIconManager();
         _trayIcon.ExitRequested += (_, _) => ExitApplication();
@@ -347,6 +362,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             LoadSettingsToUI();
 
             RefreshDevices();
+            RefreshAdapters();
 
             if (string.IsNullOrEmpty(_settingsService.Settings.DefaultDeviceName))
             {
@@ -754,8 +770,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         PreferredCodec = settings.AudioQuality.PreferredCodec;
         DisableEnhancements = settings.AudioQuality.DisableEnhancements;
         SetAsDefaultDevice = settings.AudioQuality.SetAsDefaultDevice;
-        SelectedThreadPriority = AvailableThreadPriorities.FirstOrDefault(x => x.Value == settings.AudioQuality.ThreadPriority)
-                                 ?? AvailableThreadPriorities[1];
+        MmcssOptimizationsEnabled = _audioQualityService?.AreMMCSSOptimizationsApplied() ?? false;
         UpdateCodecDescription();
 
         RefreshCodecInfo();
@@ -918,19 +933,41 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 PreferredCodec = PreferredCodec,
                 DisableEnhancements = DisableEnhancements,
-                SetAsDefaultDevice = SetAsDefaultDevice,
-                ThreadPriority = SelectedThreadPriority.Value
+                SetAsDefaultDevice = SetAsDefaultDevice
             };
 
             var success = await _audioQualityService.ApplyQualitySettingsAsync(deviceName, settings);
+
+            var currentMMCSS = _audioQualityService.AreMMCSSOptimizationsApplied();
+            var mmcssChanged = false;
+
+            if (MmcssOptimizationsEnabled && !currentMMCSS)
+            {
+                mmcssChanged = _audioQualityService.ApplyMMCSSOptimizations();
+            }
+            else if (!MmcssOptimizationsEnabled && currentMMCSS)
+            {
+                mmcssChanged = _audioQualityService.RevertMMCSSOptimizations();
+            }
 
             if (success)
             {
                 _settingsService.Settings.AudioQuality = settings;
                 await _settingsService.SaveAsync();
 
+                var message = Strings.CurrentLanguage == Language.Russian
+                    ? "Настройки качества применены."
+                    : "Quality settings applied.";
+
+                if (mmcssChanged)
+                {
+                    message += Strings.CurrentLanguage == Language.Russian
+                        ? "\n\nИзменения MMCSS требуют перезагрузки компьютера."
+                        : "\n\nMMCSS changes require a computer restart.";
+                }
+
                 System.Windows.MessageBox.Show(
-                    "Настройки качества применены.\n\nДля смены кодека может потребоваться переподключение устройства.",
+                    message,
                     Strings.AppName,
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Information);
@@ -950,7 +987,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             Logger.Error(ex, "Failed to apply quality settings");
             System.Windows.MessageBox.Show(
-                $"Ошибка: {ex.Message}",
+                $"{Strings.Status_Error}: {ex.Message}",
                 Strings.Settings_Error,
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Error);
@@ -1277,6 +1314,92 @@ public partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to open log folder");
+        }
+    }
+
+    #endregion
+
+    #region Bluetooth Adapter Methods
+
+    [RelayCommand]
+    private void RefreshAdapters()
+    {
+        try
+        {
+            AvailableAdapters = _adapterService.GetAllAdapters();
+            SelectedAdapter = AvailableAdapters.FirstOrDefault(a => a.IsActive)
+                            ?? AvailableAdapters.FirstOrDefault(a => a.IsEnabled);
+            Logger.Information("Found {Count} Bluetooth adapters", AvailableAdapters.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to refresh adapters");
+            AvailableAdapters = new List<BluetoothAdapterInfo>();
+        }
+    }
+
+    [RelayCommand]
+    private async Task SwitchAdapterAsync()
+    {
+        if (SelectedAdapter == null || SelectedAdapter.IsActive)
+            return;
+
+        var result = System.Windows.MessageBox.Show(
+            Strings.Adapter_SwitchWarning,
+            Strings.Adapter_Warning,
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result != System.Windows.MessageBoxResult.Yes)
+            return;
+
+        IsAdapterSwitching = true;
+
+        try
+        {
+            Logger.Information("Switching to adapter: {Adapter}", SelectedAdapter.Name);
+
+            var success = _adapterService.SetActiveAdapter(SelectedAdapter.DeviceInstanceId);
+
+            if (success)
+            {
+                Logger.Information("Adapter switch successful");
+
+                System.Windows.MessageBox.Show(
+                    Strings.Adapter_SwitchSuccess,
+                    Strings.AppName,
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+
+                await Task.Delay(2000);
+                RefreshAdapters();
+                RefreshDevices();
+                await RefreshDiagnosticsAsync();
+            }
+            else
+            {
+                Logger.Warning("Failed to switch adapter");
+
+                System.Windows.MessageBox.Show(
+                    Strings.Adapter_SwitchFailed,
+                    Strings.Dialog_Warning,
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error switching adapter");
+
+            System.Windows.MessageBox.Show(
+                $"{Strings.Adapter_SwitchFailed}\n{ex.Message}",
+                Strings.Status_Error,
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsAdapterSwitching = false;
         }
     }
 

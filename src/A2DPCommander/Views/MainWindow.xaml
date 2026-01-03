@@ -17,6 +17,7 @@
 
     <Window.Resources>
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
         <converters:ProfileModeToStringConverter x:Key="ProfileModeToStringConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
@@ -104,20 +105,23 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Command="{Binding SetMusicModeCommand}" Style="{StaticResource ModeButtonStyle}">
+                        <Button Grid.Column="0" Command="{Binding SetMusicModeCommand}" Style="{StaticResource ModeButtonStyle}"
+                                IsEnabled="{Binding IsMusicMode, Converter={StaticResource InverseBoolConverter}}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="border" CornerRadius="8" BorderThickness="2" Background="#E3F2FD" BorderBrush="#2196F3">
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <TextBlock Text="🎵" FontSize="32" HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Mode_Music, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Mode_MusicDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="titleText" Text="{Binding Mode_Music, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="Black"/>
+                                            <TextBlock x:Name="descText" Text="{Binding Mode_MusicDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="#333" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsMusicMode}" Value="True">
                                             <Setter TargetName="border" Property="Background" Value="#2196F3"/>
                                             <Setter TargetName="border" Property="BorderBrush" Value="#1976D2"/>
+                                            <Setter TargetName="titleText" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="descText" Property="Foreground" Value="White"/>
                                         </DataTrigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="border" Property="Background" Value="#BBDEFB"/>
@@ -134,20 +138,23 @@
                             </Button.Template>
                         </Button>
 
-                        <Button Grid.Column="1" Command="{Binding SetCallsModeCommand}" Style="{StaticResource ModeButtonStyle}">
+                        <Button Grid.Column="1" Command="{Binding SetCallsModeCommand}" Style="{StaticResource ModeButtonStyle}"
+                                IsEnabled="{Binding IsCallsMode, Converter={StaticResource InverseBoolConverter}}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="border" CornerRadius="8" BorderThickness="2" Background="#E8F5E9" BorderBrush="#4CAF50">
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <TextBlock Text="🎤" FontSize="32" HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Mode_Calls, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Mode_CallsDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="titleText" Text="{Binding Mode_Calls, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="Black"/>
+                                            <TextBlock x:Name="descText" Text="{Binding Mode_CallsDesc, Source={x:Static loc:LocalizationManager.Instance}}" FontSize="11" Foreground="#333" HorizontalAlignment="Center"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsCallsMode}" Value="True">
                                             <Setter TargetName="border" Property="Background" Value="#4CAF50"/>
                                             <Setter TargetName="border" Property="BorderBrush" Value="#388E3C"/>
+                                            <Setter TargetName="titleText" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="descText" Property="Foreground" Value="White"/>
                                         </DataTrigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="border" Property="Background" Value="#C8E6C9"/>
@@ -190,6 +197,56 @@
                             </Grid>
                         </GroupBox>
 
+                        <!-- Bluetooth адаптер -->
+                        <GroupBox Header="{Binding Adapter_Title, Source={x:Static loc:LocalizationManager.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Adapter_Select, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           Margin="0,0,0,8" FontSize="12" Foreground="#666"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox Grid.Column="0"
+                                              ItemsSource="{Binding AvailableAdapters}"
+                                              SelectedItem="{Binding SelectedAdapter}"
+                                              IsEnabled="{Binding IsAdapterSwitching, Converter={StaticResource InverseBoolConverter}}"
+                                              Margin="0,0,10,0">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text=" - " Foreground="Gray" VerticalAlignment="Center"
+                                                               Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                    <TextBlock Text="{Binding Adapter_Active, Source={x:Static loc:LocalizationManager.Instance}}"
+                                                               Foreground="Green" FontWeight="SemiBold" VerticalAlignment="Center"
+                                                               Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Grid.Column="1"
+                                            Content="{Binding Adapter_Switch, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding SwitchAdapterCommand}"
+                                            IsEnabled="{Binding IsAdapterSwitching, Converter={StaticResource InverseBoolConverter}}"
+                                            Padding="15,5" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="2"
+                                            Content="{Binding Adapter_Refresh, Source={x:Static loc:LocalizationManager.Instance}}"
+                                            Command="{Binding RefreshAdaptersCommand}"
+                                            Padding="15,5"/>
+                                </Grid>
+                                <!-- Информация о поддерживаемых кодеках -->
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0"
+                                            Visibility="{Binding SelectedAdapter, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <TextBlock Text="{Binding Adapter_SupportedCodecs, Source={x:Static loc:LocalizationManager.Instance}}"
+                                               FontSize="11" Foreground="Gray"/>
+                                    <TextBlock Text="{Binding SelectedAdapter.SupportedCodecsDisplay, Mode=OneWay}"
+                                               FontSize="11" Foreground="Gray" FontWeight="SemiBold" Margin="4,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
                         <!-- Режим по умолчанию -->
                         <GroupBox Header="{Binding Settings_DefaultMode, Source={x:Static loc:LocalizationManager.Instance}}">
                             <StackPanel>
@@ -226,16 +283,11 @@
                                 <CheckBox Content="{Binding Audio_SetAsDefault, Source={x:Static loc:LocalizationManager.Instance}}"
                                           IsChecked="{Binding SetAsDefaultDevice}"/>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="{Binding Audio_ThreadPriority, Source={x:Static loc:LocalizationManager.Instance}}"
-                                               VerticalAlignment="Center" Width="150"/>
-                                    <ComboBox ItemsSource="{Binding AvailableThreadPriorities}"
-                                              SelectedItem="{Binding SelectedThreadPriority}"
-                                              DisplayMemberPath="DisplayName"
-                                              Width="120"/>
-                                </StackPanel>
-                                <TextBlock Text="{Binding Audio_ThreadPriorityHint, Source={x:Static loc:LocalizationManager.Instance}}"
-                                           Foreground="Gray" Margin="150,2,0,0" FontSize="11"/>
+                                <CheckBox Content="{Binding Audio_OptimizeMMCSS, Source={x:Static loc:LocalizationManager.Instance}}"
+                                          IsChecked="{Binding MmcssOptimizationsEnabled}"
+                                          Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding Audio_OptimizeMMCSSHint, Source={x:Static loc:LocalizationManager.Instance}}"
+                                           Foreground="Gray" Margin="20,2,0,0" FontSize="11"/>
                             </StackPanel>
                         </GroupBox>
 

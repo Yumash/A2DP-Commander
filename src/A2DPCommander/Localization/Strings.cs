@@ -89,8 +89,10 @@ public static class Strings
     public static string Audio_DisableEnhancementsHint => Get("Audio.DisableEnhancementsHint");
     public static string Audio_SetAsDefault => Get("Audio.SetAsDefault");
     public static string Audio_Additional => Get("Audio.Additional");
-    public static string Audio_ThreadPriority => Get("Audio.ThreadPriority");
-    public static string Audio_ThreadPriorityHint => Get("Audio.ThreadPriorityHint");
+    public static string Audio_OptimizeMMCSS => Get("Audio.OptimizeMMCSS");
+    public static string Audio_OptimizeMMCSSHint => Get("Audio.OptimizeMMCSSHint");
+    public static string Audio_MMCSSEnabled => Get("Audio.MMCSSEnabled");
+    public static string Audio_MMCSSDisabled => Get("Audio.MMCSSDisabled");
     public static string Audio_ApplySettings => Get("Audio.ApplySettings");
 
     public static string Rules_Description => Get("Rules.Description");
@@ -258,6 +260,20 @@ public static class Strings
 
     public static string App_Application => Get("App.Application");
 
+    public static string Adapter_Title => Get("Adapter.Title");
+    public static string Adapter_Select => Get("Adapter.Select");
+    public static string Adapter_Current => Get("Adapter.Current");
+    public static string Adapter_SupportedCodecs => Get("Adapter.SupportedCodecs");
+    public static string Adapter_Switch => Get("Adapter.Switch");
+    public static string Adapter_NoAdapters => Get("Adapter.NoAdapters");
+    public static string Adapter_Active => Get("Adapter.Active");
+    public static string Adapter_Disabled => Get("Adapter.Disabled");
+    public static string Adapter_Warning => Get("Adapter.Warning");
+    public static string Adapter_SwitchWarning => Get("Adapter.SwitchWarning");
+    public static string Adapter_SwitchSuccess => Get("Adapter.SwitchSuccess");
+    public static string Adapter_SwitchFailed => Get("Adapter.SwitchFailed");
+    public static string Adapter_Refresh => Get("Adapter.Refresh");
+
     private static void InitializeStrings()
     {
         Add("AppName", "A2DP Commander", "A2DP Commander");
@@ -312,8 +328,10 @@ public static class Strings
         Add("Audio.DisableEnhancementsHint", "Рекомендуется отключить для лучшего качества", "Recommended to disable for better quality");
         Add("Audio.SetAsDefault", "Направлять весь звук на BT наушники при подключении", "Route all audio to BT headphones when connected");
         Add("Audio.Additional", "Дополнительно", "Additional");
-        Add("Audio.ThreadPriority", "Приоритет аудио потока:", "Audio thread priority:");
-        Add("Audio.ThreadPriorityHint", "Высокий приоритет уменьшает прерывания звука", "High priority reduces audio interruptions");
+        Add("Audio.OptimizeMMCSS", "Оптимизировать MMCSS для аудио (уменьшает запинания)", "Optimize MMCSS for audio (reduces stuttering)");
+        Add("Audio.OptimizeMMCSSHint", "Отключает троттлинг сети и повышает приоритет аудио. Требует перезагрузки.", "Disables network throttling and increases audio priority. Requires restart.");
+        Add("Audio.MMCSSEnabled", "Включена", "Enabled");
+        Add("Audio.MMCSSDisabled", "Выключена", "Disabled");
         Add("Audio.ApplySettings", "Применить настройки качества", "Apply quality settings");
 
         Add("Rules.Description", "Настройте автоматическое переключение профиля при запуске приложений. Правило с наивысшим приоритетом побеждает при конфликте.",
@@ -486,6 +504,21 @@ public static class Strings
         Add("Diag.NoLogsFound", "Логи не найдены", "No logs found");
 
         Add("App.Application", "приложение", "application");
+
+        Add("Adapter.Title", "Bluetooth адаптер", "Bluetooth Adapter");
+        Add("Adapter.Select", "Выберите активный адаптер:", "Select active adapter:");
+        Add("Adapter.Current", "Текущий:", "Current:");
+        Add("Adapter.SupportedCodecs", "Поддерживаемые кодеки:", "Supported codecs:");
+        Add("Adapter.Switch", "Переключить", "Switch");
+        Add("Adapter.NoAdapters", "Bluetooth адаптеры не найдены", "No Bluetooth adapters found");
+        Add("Adapter.Active", "Активен", "Active");
+        Add("Adapter.Disabled", "Отключён", "Disabled");
+        Add("Adapter.Warning", "Внимание!", "Warning!");
+        Add("Adapter.SwitchWarning", "При переключении адаптера:\n\n• Все Bluetooth устройства будут отключены\n• Сопряжённые устройства НЕ переносятся между адаптерами\n• Потребуется заново подключить наушники к новому адаптеру\n• Может потребоваться перезагрузка компьютера\n\nПродолжить?",
+            "When switching adapters:\n\n• All Bluetooth devices will be disconnected\n• Paired devices do NOT transfer between adapters\n• You will need to re-pair your headphones with the new adapter\n• A computer restart may be required\n\nContinue?");
+        Add("Adapter.SwitchSuccess", "Адаптер переключён. Перезагрузите компьютер для применения изменений.", "Adapter switched. Restart your computer to apply changes.");
+        Add("Adapter.SwitchFailed", "Не удалось переключить адаптер. Требуются права администратора.", "Failed to switch adapter. Administrator rights required.");
+        Add("Adapter.Refresh", "Обновить список", "Refresh list");
     }
 
     private static void Add(string key, string russian, string english)

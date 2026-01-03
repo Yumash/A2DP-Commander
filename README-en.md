@@ -2,7 +2,7 @@
 
 A free Windows utility for managing Bluetooth audio profiles (A2DP/HFP). Solves the problem of incorrect automatic profile switching in Windows.
 
-**Version:** 1.0.1 | **Languages:** Русский, English
+**Version:** 1.1.0 | **Languages:** Русский, English
 
 ---
 
@@ -10,7 +10,9 @@ A free Windows utility for managing Bluetooth audio profiles (A2DP/HFP). Solves 
 
 - [The Problem](#the-problem)
 - [The Solution](#the-solution)
+- [New in 1.1.0: Bluetooth Adapter Selection](#new-in-110-bluetooth-adapter-selection)
 - [AAC Codec Issues on Intel Adapters](#aac-codec-issues-on-intel-adapters)
+- [MMCSS Optimization for Reducing Stuttering](#mmcss-optimization-for-reducing-stuttering)
 - [Important: Wait After Connection](#important-wait-after-connection)
 - [System Requirements](#system-requirements)
 - [Installation](#installation)
@@ -81,6 +83,38 @@ You can switch between modes:
 
 ---
 
+## New in 1.1.0: Bluetooth Adapter Selection
+
+If you have multiple Bluetooth adapters in your system (e.g., built-in Intel and external USB Realtek), you can now **switch between them** directly from the program.
+
+### How It Works
+
+1. Open the **Settings** tab
+2. In the **Bluetooth Adapter** section, you'll see a list of all physical adapters
+3. Select the desired adapter and click **Switch**
+4. The program will disable all other adapters and enable the selected one
+
+### Important Notes
+
+- **Windows supports only one active Bluetooth adapter** at a time
+- **Paired devices do NOT transfer** between adapters
+- After switching, you'll need to **re-pair your headphones** with the new adapter
+- A **computer restart** may be required
+
+### Why Is This Useful?
+
+Different adapters support different codecs:
+
+| Adapter | SBC | AAC | aptX | aptX HD | LDAC |
+|---------|-----|-----|------|---------|------|
+| Intel (built-in) | ✓ | ✓* | ✗ | ✗ | ✗ |
+| Realtek (USB) | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Creative BT-W5 | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+*AAC on Intel often has stuttering issues
+
+---
+
 ## AAC Codec Issues on Intel Adapters
 
 Many Intel Bluetooth adapters have problems with the AAC codec, causing:
@@ -110,7 +144,30 @@ When AAC is disabled, Windows will fall back to SBC codec, which may have slight
 
 **Changing the AAC setting requires a full computer restart to take effect.** The Bluetooth stack reads this registry value only during system startup. Simply reconnecting your headphones or restarting the Bluetooth service will NOT apply the change.
 
-In version 1.0.1, the "Restart Bluetooth" feature was removed as it could cause the Bluetooth adapter to become disabled. The program now offers a safe system reboot to apply AAC changes.
+---
+
+## MMCSS Optimization for Reducing Stuttering
+
+A2DP Commander can apply system optimizations to improve audio quality through **MMCSS (Multimedia Class Scheduler Service)**.
+
+### What This Optimization Does
+
+1. **Disables network throttling during audio playback** (`NetworkThrottlingIndex = 0xFFFFFFFF`)
+2. **Sets system priority to multimedia** (`SystemResponsiveness = 0`)
+3. **Increases audio thread priority** (`Audio\Scheduling Category = High`)
+
+### How to Enable
+
+1. Open the **Settings** tab
+2. Check **Optimize MMCSS for audio**
+3. Click **Save**
+4. **Restart your computer**
+
+### When This Helps
+
+- Audio stuttering during heavy network activity
+- Interruptions when other applications are working
+- General improvement in playback stability
 
 ---
 
@@ -233,12 +290,14 @@ Settings are stored in `settings.json` file in the same folder as the program.
 
 | Parameter | Description |
 |-----------|-------------|
-| Default device | Bluetooth device to manage |
+| Bluetooth device | Bluetooth device to manage |
+| Bluetooth adapter | Select active Bluetooth adapter (if multiple) |
 | Default mode | Music or Calls on startup |
 | Auto-start | Launch program on Windows startup |
 | Notifications | Show notifications on mode switch |
 | App-based switching | Switch mode when Zoom etc. starts |
-| Disable AAC | Disable AAC codec (requires restart) |
+| Disable Windows enhancements | Disable DSP effects for clean sound |
+| Optimize MMCSS | System audio optimizations (requires restart) |
 
 ### Application Rules
 

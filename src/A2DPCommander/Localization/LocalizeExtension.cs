@@ -151,8 +151,8 @@ public class LocalizationManager : System.ComponentModel.INotifyPropertyChanged
     public string Audio_DisableEnhancementsHint => Strings.Audio_DisableEnhancementsHint;
     public string Audio_SetAsDefault => Strings.Audio_SetAsDefault;
     public string Audio_Additional => Strings.Audio_Additional;
-    public string Audio_ThreadPriority => Strings.Audio_ThreadPriority;
-    public string Audio_ThreadPriorityHint => Strings.Audio_ThreadPriorityHint;
+    public string Audio_OptimizeMMCSS => Strings.Audio_OptimizeMMCSS;
+    public string Audio_OptimizeMMCSSHint => Strings.Audio_OptimizeMMCSSHint;
     public string Audio_ApplySettings => Strings.Audio_ApplySettings;
 
     public string Rules_Description => Strings.Rules_Description;
@@ -182,4 +182,18 @@ public class LocalizationManager : System.ComponentModel.INotifyPropertyChanged
     public string Codec_Note_ChangesAfterReconnect => Strings.Codec_Note_ChangesAfterReconnect;
     public string Codec_TableNote => Strings.Codec_TableNote;
     public string Codec_SupportedCodecs => Strings.Codec_SupportedCodecs;
+
+    public string Adapter_Title => Strings.Adapter_Title;
+    public string Adapter_Select => Strings.Adapter_Select;
+    public string Adapter_Current => Strings.Adapter_Current;
+    public string Adapter_SupportedCodecs => Strings.Adapter_SupportedCodecs;
+    public string Adapter_Switch => Strings.Adapter_Switch;
+    public string Adapter_NoAdapters => Strings.Adapter_NoAdapters;
+    public string Adapter_Active => Strings.Adapter_Active;
+    public string Adapter_Disabled => Strings.Adapter_Disabled;
+    public string Adapter_Warning => Strings.Adapter_Warning;
+    public string Adapter_SwitchWarning => Strings.Adapter_SwitchWarning;
+    public string Adapter_SwitchSuccess => Strings.Adapter_SwitchSuccess;
+    public string Adapter_SwitchFailed => Strings.Adapter_SwitchFailed;
+    public string Adapter_Refresh => Strings.Adapter_Refresh;
 }

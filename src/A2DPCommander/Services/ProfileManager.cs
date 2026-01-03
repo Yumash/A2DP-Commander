@@ -92,7 +92,7 @@ public class ProfileManager : IProfileManager
             return false;
         }
 
-        return await Task.Run(() =>
+        return await Task.Run(async () =>
         {
             try
             {
@@ -109,14 +109,29 @@ public class ProfileManager : IProfileManager
                 {
                     Logger.Information("Successfully disabled HFP for {DeviceName}", deviceName);
 
+                    await Task.Delay(500, cancellationToken);
+
+                    _audioService.Refresh();
+
+                    var endpoints = _audioService.GetEndpointsForBluetoothDevice(deviceName);
+                    var a2dpEndpoint = endpoints.FirstOrDefault(e => e.IsA2dp && e.IsPlayback);
+
+                    if (a2dpEndpoint != null)
+                    {
+                        Logger.Information("Setting A2DP endpoint as default: {EndpointName}", a2dpEndpoint.FriendlyName);
+                        _audioService.SetDefaultPlaybackDevice(a2dpEndpoint.Id);
+                    }
+                    else
+                    {
+                        Logger.Warning("A2DP playback endpoint not found for {DeviceName}", deviceName);
+                    }
+
                     if (_deviceStates.TryGetValue(deviceName, out var state))
                     {
                         state.IsHfpEnabled = false;
                         state.CurrentMode = ProfileMode.Music;
                         ProfileModeChanged?.Invoke(this, state);
                     }
-
-                    _audioService.Refresh();
                 }
 
                 return success;

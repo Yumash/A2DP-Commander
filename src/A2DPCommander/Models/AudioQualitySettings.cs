@@ -133,10 +133,41 @@ public class BluetoothAdapterInfo
 
     public bool IsIntel { get; set; }
 
+    public bool IsRealtek { get; set; }
+
+    public bool IsEnabled { get; set; } = true;
+
+    public bool IsActive { get; set; }
+
+    public bool SupportsAAC { get; set; } = true;
+
+    public bool SupportsAptX { get; set; }
+
+    public bool SupportsAptXHD { get; set; }
+
+    public bool SupportsLDAC { get; set; }
+
     public bool ShouldDisableAAC => IsIntel;
+
+    public string SupportedCodecsDisplay
+    {
+        get
+        {
+            var codecs = new List<string> { "SBC" };
+            if (SupportsAAC) codecs.Add("AAC");
+            if (SupportsAptX) codecs.Add("aptX");
+            if (SupportsAptXHD) codecs.Add("aptX HD");
+            if (SupportsLDAC) codecs.Add("LDAC");
+            return string.Join(", ", codecs);
+        }
+    }
+
+    public string DisplayName => IsEnabled
+        ? (IsActive ? $"● {Name}" : Name)
+        : $"○ {Name} (отключён)";
 
     public override string ToString()
     {
-        return $"{Name} (Intel: {(IsIntel ? "Yes" : "No")})";
+        return $"{Name} [{SupportedCodecsDisplay}]";
     }
 }

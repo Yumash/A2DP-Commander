@@ -99,6 +99,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IProcessWatcherService, ProcessWatcherService>();
         services.AddSingleton<IAudioQualityService, AudioQualityService>();
         services.AddSingleton<IBluetoothCodecMonitor, BluetoothCodecMonitor>();
+        services.AddSingleton<IBluetoothAdapterService, BluetoothAdapterService>();
 
         services.AddSingleton<MainViewModel>();
     }

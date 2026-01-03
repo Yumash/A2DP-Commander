@@ -267,7 +267,7 @@ public class AudioQualityService : IAudioQualityService
             if (IsAptXSupported())
                 return BluetoothCodec.AptX;
 
-            if (IsAACSupported())
+            if (IsAACSupported() && IsAACEnabled())
                 return BluetoothCodec.AAC;
 
             return BluetoothCodec.SBC;
@@ -573,5 +573,132 @@ public class AudioQualityService : IAudioQualityService
         }
 
         return info;
+    }
+
+    private const string MMCSSRegPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile";
+    private const string MMCSSTasksRegPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio";
+
+    public bool ApplyMMCSSOptimizations()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(MMCSSRegPath, writable: true);
+            if (key == null)
+            {
+                Logger.Warning("Failed to open MMCSS registry key");
+                return false;
+            }
+
+            var currentThrottling = key.GetValue("NetworkThrottlingIndex");
+            if (currentThrottling != null)
+            {
+                key.SetValue("NetworkThrottlingIndex_Backup", currentThrottling, RegistryValueKind.DWord);
+            }
+
+            var currentResponsiveness = key.GetValue("SystemResponsiveness");
+            if (currentResponsiveness != null)
+            {
+                key.SetValue("SystemResponsiveness_Backup", currentResponsiveness, RegistryValueKind.DWord);
+            }
+
+            key.SetValue("NetworkThrottlingIndex", unchecked((int)0xFFFFFFFF), RegistryValueKind.DWord);
+            key.SetValue("SystemResponsiveness", 0, RegistryValueKind.DWord);
+
+            Logger.Information("MMCSS optimizations applied: NetworkThrottlingIndex=0xFFFFFFFF, SystemResponsiveness=0");
+
+            try
+            {
+                using var audioTaskKey = Registry.LocalMachine.OpenSubKey(MMCSSTasksRegPath, writable: true);
+                if (audioTaskKey != null)
+                {
+                    audioTaskKey.SetValue("Priority", 6, RegistryValueKind.DWord);
+                    audioTaskKey.SetValue("Scheduling Category", "High", RegistryValueKind.String);
+                    audioTaskKey.SetValue("SFIO Priority", "High", RegistryValueKind.String);
+                    Logger.Information("Audio task priority set to High");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning(ex, "Failed to set Audio task priority");
+            }
+
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Logger.Error("Administrator rights required to apply MMCSS optimizations");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to apply MMCSS optimizations");
+            return false;
+        }
+    }
+
+    public bool RevertMMCSSOptimizations()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(MMCSSRegPath, writable: true);
+            if (key == null)
+            {
+                Logger.Warning("Failed to open MMCSS registry key");
+                return false;
+            }
+
+            var backupThrottling = key.GetValue("NetworkThrottlingIndex_Backup");
+            if (backupThrottling != null)
+            {
+                key.SetValue("NetworkThrottlingIndex", backupThrottling, RegistryValueKind.DWord);
+                key.DeleteValue("NetworkThrottlingIndex_Backup", false);
+            }
+            else
+            {
+                key.SetValue("NetworkThrottlingIndex", 10, RegistryValueKind.DWord);
+            }
+
+            var backupResponsiveness = key.GetValue("SystemResponsiveness_Backup");
+            if (backupResponsiveness != null)
+            {
+                key.SetValue("SystemResponsiveness", backupResponsiveness, RegistryValueKind.DWord);
+                key.DeleteValue("SystemResponsiveness_Backup", false);
+            }
+            else
+            {
+                key.SetValue("SystemResponsiveness", 20, RegistryValueKind.DWord);
+            }
+
+            Logger.Information("MMCSS optimizations reverted to defaults");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Failed to revert MMCSS optimizations");
+            return false;
+        }
+    }
+
+    public bool AreMMCSSOptimizationsApplied()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(MMCSSRegPath);
+            if (key == null) return false;
+
+            var throttling = key.GetValue("NetworkThrottlingIndex");
+            var responsiveness = key.GetValue("SystemResponsiveness");
+
+            if (throttling == null || responsiveness == null) return false;
+
+            var throttlingValue = Convert.ToUInt32(throttling);
+            var responsivenessValue = Convert.ToInt32(responsiveness);
+
+            return throttlingValue == 0xFFFFFFFF && responsivenessValue == 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
